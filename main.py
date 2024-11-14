@@ -2,6 +2,7 @@ from src.api import HeadHunterApi
 from src.DBManager import DBManager
 from src.interface import create_db, save_to_db
 from src.vacancies import Vacancy
+from src.config import config
 
 companies_id = [
     "9140614",
@@ -18,14 +19,15 @@ companies_id = [
 
 
 def main():
+    params = config()
     vacancies = HeadHunterApi(companies_id)
     if vacancies.get_vacancies() != [[]]:
         user_input = input("Введите ключевое слово для поиска вакансий: ")
+        create_db("HHApi", params)
         for vacancy in vacancies.get_vacancies()[0]:
             vac = Vacancy(vacancy)
-            create_db("HHApi")
-            save_to_db("HHApi", vac)
-        DBMan = DBManager("HHApi", "postgres", "5893", "localhost")
+            save_to_db("HHApi", vac, params)
+        DBMan = DBManager("HHApi", params)
         companies_and_vacancies_count = DBMan.get_companies_and_vacancies_count()
         all_vacancies = DBMan.get_all_vacancies()
         avg_salary = DBMan.get_avg_salary()

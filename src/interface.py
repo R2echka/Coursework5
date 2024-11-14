@@ -1,9 +1,8 @@
 import psycopg2
 from psycopg2 import sql
 
-
-def create_db(database):
-    conn = psycopg2.connect(dbname="postgres", user="postgres", password="5893", host="localhost")
+def create_db(database, params):
+    conn = psycopg2.connect(dbname="postgres", **params)
     conn.set_client_encoding("UTF8")
     conn.autocommit = True
     cur = conn.cursor()
@@ -14,7 +13,7 @@ def create_db(database):
     cur.close()
     conn.close()
 
-    with psycopg2.connect(dbname=database, user="postgres", password="5893", host="localhost") as conn:
+    with psycopg2.connect(dbname=database, **params) as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """CREATE TABLE employers (
@@ -34,13 +33,14 @@ def create_db(database):
     return None
 
 
-def save_to_db(database, vacancy):
-    with psycopg2.connect(dbname=database, user="postgres", password="5893", host="localhost") as conn:
+def save_to_db(database, vacancy, params):
+    with psycopg2.connect(dbname=database, **params) as conn:
         conn.autocommit = True
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO employers (company_id, company_name) VALUES (%s, %s);
+                INSERT INTO employers (company_id, company_name) VALUES (%s, %s)
+                ON CONFLICT (company_id) DO NOTHING;
             """,
                 (vacancy.employer_id, vacancy.employer_name),
             )
@@ -51,3 +51,4 @@ def save_to_db(database, vacancy):
             """,
                 (vacancy.id, vacancy.name, vacancy.salary, vacancy.employer_id, vacancy.url),
             )
+
